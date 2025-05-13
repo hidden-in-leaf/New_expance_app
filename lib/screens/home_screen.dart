@@ -238,6 +238,7 @@ import 'package:aexpences/services/utilitis.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/auth_service.dart';
+import '../widgets/delete_dialouge.dart';
 import 'add_transaction_screen.dart';
 import 'analytics_screen.dart';
 import '../services/firestore_service.dart';
@@ -410,18 +411,18 @@ class _HomeScreenState extends State<HomeScreen>
           );
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const AddTransactionScreen()),
-        ),
-        elevation: 2,
-        backgroundColor: Theme.of(context).primaryColor,
-        child: const Icon(
-          Icons.add,
-          color: Colors.white,
-        ),
-      ),
+      // floatingActionButton: FloatingActionButton(
+      //   onPressed: () => Navigator.push(
+      //     context,
+      //     MaterialPageRoute(builder: (_) => const AddTransactionScreen()),
+      //   ),
+      //   elevation: 2,
+      //   backgroundColor: Theme.of(context).primaryColor,
+      //   child: const Icon(
+      //     Icons.add,
+      //     color: Colors.white,
+      //   ),
+      // ),
       bottomNavigationBar: _buildBottomNavigationBar(),
     );
   }
@@ -638,21 +639,45 @@ class _HomeScreenState extends State<HomeScreen>
         color: Colors.white,
         borderRadius: BorderRadius.circular(15),
       ),
-      child: TabBar(
-        controller: _tabController,
-        indicator: BoxDecoration(
-          borderRadius: BorderRadius.circular(15),
-          color: Theme.of(context).primaryColor,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(15), // Clip ripple to rounded shape
+        child: Material(
+          color: Colors.transparent,
+          child: Theme(
+            data: Theme.of(context).copyWith(
+              splashColor: Theme.of(context).primaryColor.withOpacity(0.2),
+              highlightColor: Colors.transparent,
+              hoverColor: Colors.transparent,
+            ),
+            child: TabBar(
+              controller: _tabController,
+              isScrollable: false,
+              indicator: BoxDecoration(
+                borderRadius: BorderRadius.circular(15),
+                color: Theme.of(context).primaryColor,
+              ),
+              indicatorSize: TabBarIndicatorSize.tab,
+              overlayColor: MaterialStateProperty.resolveWith<Color?>(
+                (Set<MaterialState> states) {
+                  if (states.contains(MaterialState.hovered) ||
+                      states.contains(MaterialState.pressed)) {
+                    return Theme.of(context).primaryColor.withOpacity(0.1);
+                  }
+                  return Colors.transparent;
+                },
+              ),
+              labelColor: Colors.white,
+              unselectedLabelColor: Colors.grey[600],
+              labelStyle: const TextStyle(fontWeight: FontWeight.bold),
+              tabs: const [
+                Tab(text: "All"),
+                Tab(text: "Day"),
+                Tab(text: "Month"),
+                Tab(text: "Year"),
+              ],
+            ),
+          ),
         ),
-        labelColor: Colors.white,
-        unselectedLabelColor: Colors.grey[600],
-        labelStyle: const TextStyle(fontWeight: FontWeight.bold),
-        tabs: const [
-          Tab(text: "All"),
-          Tab(text: "Day"),
-          Tab(text: "Month"),
-          Tab(text: "Year"),
-        ],
       ),
     );
   }
@@ -766,6 +791,9 @@ class _HomeScreenState extends State<HomeScreen>
             ),
           ),
           direction: DismissDirection.endToStart,
+          confirmDismiss: (direction) async {
+            return await deleteDialouge(context);
+          },
           onDismissed: (direction) {
             _firestoreService.deleteTransaction(user!.uid, transaction.id);
           },
@@ -948,8 +976,6 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  
-
   Widget _buildGroupedByDayTab() {
     Map<String, List<TransactionModel>> dailyTransactions = {};
 
@@ -1126,9 +1152,6 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-
-
-
   Widget _buildSummaryCard(
       String title, double amount, IconData icon, Color color) {
     return Container(
@@ -1251,12 +1274,12 @@ class _HomeScreenState extends State<HomeScreen>
             _selectedIndex = index;
           });
 
-          if (index == 1) {
+          if (index == 2) {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const AnalyticsScreen()),
             );
-          } else if (index == 2) {
+          } else if (index == 1) {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const AddTransactionScreen()),
@@ -1273,21 +1296,22 @@ class _HomeScreenState extends State<HomeScreen>
             activeIcon: Icon(Icons.home),
             label: 'Home',
           ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.insert_chart_outlined),
-            activeIcon: Icon(Icons.insert_chart),
-            label: 'Analytics',
-          ),
-          const BottomNavigationBarItem(
+           const BottomNavigationBarItem(
             icon: Icon(Icons.add_circle_outline),
             activeIcon: Icon(Icons.add_circle),
             label: 'Add',
           ),
           const BottomNavigationBarItem(
-            icon: Icon(Icons.settings_outlined),
-            activeIcon: Icon(Icons.settings),
-            label: 'Settings',
+            icon: Icon(Icons.insert_chart_outlined),
+            activeIcon: Icon(Icons.insert_chart),
+            label: 'Analytics',
           ),
+         
+          // const BottomNavigationBarItem(
+          //   icon: Icon(Icons.settings_outlined),
+          //   activeIcon: Icon(Icons.settings),
+          //   label: 'Settings',
+          // ),
         ],
       ),
     );
