@@ -66,14 +66,25 @@ class FirestoreService {
     });
   }
 
-  // Add a new category
-  Future<void> addCategory(String userId, String categoryName) async {
-    final categoryRef = _firestore.collection('users').doc(userId).collection('categories');
-    await categoryRef.add({
-      'name': categoryName,
-      'timestamp': FieldValue.serverTimestamp(),
-    });
-  }
+  // // Add a new category
+  // Future<void> addCategory(String userId, String categoryName) async {
+  //   final categoryRef = _firestore.collection('users').doc(userId).collection('categories');
+  //   await categoryRef.add({
+  //     'name': categoryName,
+  //     'timestamp': FieldValue.serverTimestamp(),
+  //   });
+  // }
+
+  Future<String> addCategory(String uid, String categoryName) async {
+  final docRef = await FirebaseFirestore.instance
+      .collection('users')
+      .doc(uid)
+      .collection('categories')
+      .add({'name': categoryName});
+
+  return docRef.id; // ✅ Return the Firestore-generated ID
+}
+
 
   // Update category name (does not affect old transactions)
   Future<void> updateCategory(String userId, String categoryId, String newCategoryName) async {
