@@ -850,6 +850,7 @@ void _addCustomCategory() async {
           fontSize: 16,
           fontWeight: FontWeight.w600,
           letterSpacing: 1.2,
+          color: Colors.white,
         ),
       ),
     );
