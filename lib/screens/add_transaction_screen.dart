@@ -357,42 +357,78 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> with Single
     }
   }
 
-  void _addCustomCategory() async {
-    if (_customCategoryController.text.trim().isEmpty) return;
 
-    final categoryName = _customCategoryController.text.trim();
-    // Create a unique ID for the new category
-    final newCategoryId = 'newCategoryId_${DateTime.now().millisecondsSinceEpoch}';
-    
-    try {
-      // Add the category to Firestore
-      await _firestoreService.addCategory(_user!.uid, categoryName);
+void _addCustomCategory() async {
+  final categoryName = _customCategoryController.text.trim();
+  if (categoryName.isEmpty) return;
 
-      setState(() {
-        // Add new category to the map
-        categories[newCategoryId] = categoryName;
-        _categoryId = newCategoryId;
-        _isCustomCategory = false;
-      });
-      
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('New category added'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error adding category: ${e.toString()}'),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    }
-    
+  try {
+    // ✅ Add the category and get the document ID from Firestore
+    final newCategoryId = await _firestoreService.addCategory(_user!.uid, categoryName);
+
+    setState(() {
+      categories[newCategoryId] = categoryName;
+      _categoryId = newCategoryId;
+      _isCustomCategory = false;
+    });
+
     _customCategoryController.clear();
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Category added successfully'),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Error adding category: ${e.toString()}'),
+        backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
   }
+}
+
+
+  // void _addCustomCategory() async {
+  //   if (_customCategoryController.text.trim().isEmpty) return;
+
+  //   final categoryName = _customCategoryController.text.trim();
+  //   // Create a unique ID for the new category
+  //   final newCategoryId = 'newCategoryId_${DateTime.now().millisecondsSinceEpoch}';
+    
+  //   try {
+  //     // Add the category to Firestore
+  //     await _firestoreService.addCategory(_user!.uid, categoryName);
+
+  //     setState(() {
+  //       // Add new category to the map
+  //       categories[newCategoryId] = categoryName;
+  //       _categoryId = newCategoryId;
+  //       _isCustomCategory = false;
+  //     });
+      
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       const SnackBar(
+  //         content: Text('New category added'),
+  //         behavior: SnackBarBehavior.floating,
+  //       ),
+  //     );
+  //   } catch (e) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(
+  //         content: Text('Error adding category: ${e.toString()}'),
+  //         backgroundColor: Colors.red,
+  //         behavior: SnackBarBehavior.floating,
+  //       ),
+  //     );
+  //   }
+    
+  //   _customCategoryController.clear();
+  // }
+
 
   @override
   Widget build(BuildContext context) {
