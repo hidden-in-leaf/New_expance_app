@@ -199,6 +199,7 @@
 // }
 
 
+import 'package:aexpences/services/utilitis.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -257,12 +258,17 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> with Single
       _selectedDate = tx.date;
     }
     
-    // Fetch categories from Firestore
-    _firestoreService.getCategories(_user!.uid).listen((newCategories) {
-      setState(() {
-        categories = newCategories;
+
+     setState(() {
+        categories = globalCategories;
       });
-    });
+
+    // // Fetch categories from Firestore
+    // _firestoreService.getCategories(_user!.uid).listen((newCategories) {
+    //   setState(() {
+    //     categories = globalCategories;
+    //   });
+    // });
   }
 
   @override
@@ -650,7 +656,7 @@ void _addCustomCategory() async {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12),
         child: DropdownButtonFormField<String>(
-          value: _categoryId.isEmpty ? null : _categoryId,
+          value: _categoryId.isEmpty ? null : globalCategories.containsKey( _categoryId) ? _categoryId : null,
           icon: const Icon(Icons.keyboard_arrow_down_rounded),
           iconSize: 28,
           elevation: 0,
