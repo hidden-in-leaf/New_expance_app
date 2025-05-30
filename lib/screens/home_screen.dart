@@ -429,7 +429,7 @@ class _HomeScreenState extends State<HomeScreen>
                     transaction.description
                         .toLowerCase()
                         .contains(_searchController.text.toLowerCase()) ||
-                    globalCategories[transaction.categoryId]!
+                    (globalCategories[transaction.categoryId]??'unknown')
                         .toLowerCase()
                         .contains(_searchController.text.toLowerCase()))
                 .toList();
