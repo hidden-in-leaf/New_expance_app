@@ -25,8 +25,8 @@ void main() async {
   }
 
   FirebaseFirestore.instance.settings = const Settings(
-  persistenceEnabled: true,
-);
+    persistenceEnabled: true,
+  );
 
   await NotificationService.init();
 
@@ -35,9 +35,6 @@ void main() async {
 
 class ExpenseTrackerApp extends StatelessWidget {
   const ExpenseTrackerApp({super.key});
-
-  
-
 
   @override
   Widget build(BuildContext context) {
