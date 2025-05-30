@@ -238,6 +238,7 @@ import 'package:aexpences/services/utilitis.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/auth_service.dart';
+import '../services/rtdb_to_firestore_migration.dart';
 import '../widgets/delete_dialouge.dart';
 import 'add_transaction_screen.dart';
 import 'analytics_screen.dart';
@@ -265,6 +266,12 @@ class _HomeScreenState extends State<HomeScreen>
   final _user = FirebaseAuth.instance.currentUser;
   int _selectedIndex = 0;
 
+  final ScrollController _scrollController = ScrollController();
+  double _lastOffset = 0;
+
+  bool showUpperUI = true;
+  bool fadeUpperUI = true;
+
   @override
   void initState() {
     super.initState();
@@ -283,6 +290,30 @@ class _HomeScreenState extends State<HomeScreen>
         globalCategories = newCategories;
       });
     });
+
+    _scrollController.addListener(() {
+      final currentOffset = _scrollController.offset;
+      if (currentOffset > _lastOffset) {
+        setState(() {
+          fadeUpperUI = false; // Hide balance card when scrolling down
+        });
+        Future.delayed(Duration(milliseconds: 350)).then((_) {
+          setState(() {
+            showUpperUI = false; // Hide balance card when scrolling down
+          });
+        });
+        print('Scrolling Down');
+      } else if (currentOffset < _lastOffset || currentOffset == 0) {
+        setState(() {
+          showUpperUI = true; // Show balance card when scrolling up
+          fadeUpperUI = true; // Show balance card when scrolling up
+        });
+        print('Scrolling Up');
+      }
+      _lastOffset = currentOffset;
+
+      // print(_lastOffset);
+    });
   }
 
   void _signOut() async {
@@ -294,7 +325,20 @@ class _HomeScreenState extends State<HomeScreen>
     if (user == null) return const SizedBox();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
+      // floatingActionButton: FloatingActionButton(
+      //   onPressed: () async {
+
+      //
+
+      //   },
+      //   elevation: 2,
+      //   backgroundColor: Theme.of(context).primaryColor,
+      //   child: const Icon(
+      //     Icons.add,
+      //     color: Colors.white,
+      //   ),
+      // ),
+      // backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.transparent,
@@ -367,12 +411,14 @@ class _HomeScreenState extends State<HomeScreen>
       body: StreamBuilder<List<TransactionModel>>(
         stream: _firestoreService.getTransactions(user!.uid),
         builder: (context, snapshot) {
-          if (snapshot.hasError)
+          if (snapshot.hasError) {
             return _buildErrorState("Error loading transactions");
-          if (!snapshot.hasData)
+          }
+          if (!snapshot.hasData) {
             return const Center(
               child: CircularProgressIndicator(),
             );
+          }
 
           final transactions = snapshot.data!;
 
@@ -393,9 +439,38 @@ class _HomeScreenState extends State<HomeScreen>
 
           return Column(
             children: [
-              _buildBalanceCard(transactions),
-              _buildSearchBar(),
-              _buildTabBar(),
+              AnimatedContainer(
+                duration: Duration(milliseconds: 300),
+                height: showUpperUI ? 105.0 : 0.0,
+                curve: Curves.easeInOut,
+                child: AnimatedOpacity(
+                    opacity: fadeUpperUI ? 1.0 : 0.0,
+                    duration: Duration(milliseconds: 300),
+                    child: Visibility(
+                        visible: showUpperUI,
+                        child: _buildBalanceCard(transactions))),
+              ),
+             AnimatedContainer(
+                duration: Duration(milliseconds: 300),
+                height: showUpperUI ? 80.0 : 0.0,
+                curve: Curves.easeInOut,
+                child: AnimatedOpacity(
+                  opacity: fadeUpperUI ? 1.0 : 0.0,
+                  duration: Duration(milliseconds: 300),
+                  child:
+                      Visibility(visible: showUpperUI, child: _buildSearchBar()),
+                ),
+              ),
+             AnimatedContainer(
+                duration: Duration(milliseconds: 300),
+                height: showUpperUI ? 40.0 : 0.0,
+                curve: Curves.easeInOut,
+                child: AnimatedOpacity(
+                  opacity: fadeUpperUI ? 1.0 : 0.0,
+                  duration: Duration(milliseconds: 300),
+                  child: Visibility(visible: showUpperUI, child: _buildTabBar()),
+                ),
+              ),
               Expanded(
                 child: TabBarView(
                   controller: _tabController,
@@ -475,7 +550,7 @@ class _HomeScreenState extends State<HomeScreen>
           gradient: LinearGradient(
             colors: [
               Theme.of(context).primaryColor,
-              Color.fromARGB(255, 71, 148, 255),
+              const Color.fromARGB(255, 71, 148, 255),
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -493,46 +568,46 @@ class _HomeScreenState extends State<HomeScreen>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  "Balance",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.account_balance_wallet,
-                      color: Colors.white.withOpacity(0.8),
-                      size: 18,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      "My Wallet",
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.8),
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Text(
-              "₹${balance.toStringAsFixed(2)}",
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 20),
+            // Row(
+            //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            //   children: [
+            //     // const Text(
+            //     //   "Balance",
+            //     //   style: TextStyle(
+            //     //     color: Colors.white,
+            //     //     fontSize: 16,
+            //     //     fontWeight: FontWeight.w500,
+            //     //   ),
+            //     // ),
+            //     // Row(
+            //     //   children: [
+            //     //     Icon(
+            //     //       Icons.account_balance_wallet,
+            //     //       color: Colors.white.withOpacity(0.8),
+            //     //       size: 18,
+            //     //     ),
+            //     //     const SizedBox(width: 4),
+            //     //     Text(
+            //     //       "My Wallet",
+            //     //       style: TextStyle(
+            //     //         color: Colors.white.withOpacity(0.8),
+            //     //         fontSize: 14,
+            //     //       ),
+            //     //     ),
+            //     //   ],
+            //     // ),
+            //   ],
+            // ),
+            // // const SizedBox(height: 12),
+            // Text(
+            //   "₹${balance.toStringAsFixed(2)}",
+            //   style: const TextStyle(
+            //     color: Colors.white,
+            //     fontSize: 28,
+            //     fontWeight: FontWeight.bold,
+            //   ),
+            // ),
+            // const SizedBox(height: 20),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -691,6 +766,8 @@ class _HomeScreenState extends State<HomeScreen>
       margin: const EdgeInsets.only(top: 16),
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: ListView.builder(
+        physics: ClampingScrollPhysics(),
+        controller: _scrollController,
         itemCount: _filteredTransactions.length,
         itemBuilder: (context, index) {
           final transaction = _filteredTransactions[index];
@@ -1290,23 +1367,23 @@ class _HomeScreenState extends State<HomeScreen>
         unselectedItemColor: Colors.grey[400],
         selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600),
         type: BottomNavigationBarType.fixed,
-        items: [
-          const BottomNavigationBarItem(
+        items: const [
+          BottomNavigationBarItem(
             icon: Icon(Icons.home_outlined),
             activeIcon: Icon(Icons.home),
             label: 'Home',
           ),
-           const BottomNavigationBarItem(
+          BottomNavigationBarItem(
             icon: Icon(Icons.add_circle_outline),
             activeIcon: Icon(Icons.add_circle),
             label: 'Add',
           ),
-          const BottomNavigationBarItem(
+          BottomNavigationBarItem(
             icon: Icon(Icons.insert_chart_outlined),
             activeIcon: Icon(Icons.insert_chart),
             label: 'Analytics',
           ),
-         
+
           // const BottomNavigationBarItem(
           //   icon: Icon(Icons.settings_outlined),
           //   activeIcon: Icon(Icons.settings),
